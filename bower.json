@@ -1,0 +1,16 @@
+{
+  "name": "shareCuration",
+  "version": "0.0.0",
+  "homepage": "https://github.com/barbour-em/share-curation",
+  "authors": [
+    "Eric Barbour <emb4gu@virginia.edu>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

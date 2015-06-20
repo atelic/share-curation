@@ -3,4 +3,4 @@ from django.http import HttpResponse
 
 # Create your views here.
 def index(request):
-    return HttpResponse('Hello world! You are at the crowd index')
+    return HttpResponse('Hello world! You are at the crowd index. Hopefully this is where the curation interface will go')
