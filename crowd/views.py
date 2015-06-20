@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from sharepa import ShareSearch
 import json
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 
 # Create your views here.
 def index(request):
@@ -13,5 +13,5 @@ def homepage(request):
 def ten(request):
     search = ShareSearch()
     first_ten = search.execute()
-    return first_ten.to_dict()
+    return JsonResponse(first_ten.to_dict())
  
