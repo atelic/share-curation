@@ -91,3 +91,5 @@ website/mfrtemp/
 docs/_build
 website/static/img/badges
 
+# database
+db.sqlite3
