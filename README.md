@@ -1,3 +1,1 @@
 # share-curation
-
-Hello world.
