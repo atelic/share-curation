@@ -14,7 +14,10 @@ def homepage(request):
     return render(request, 'homepage.html')
 
 def ten(request):
-    # abstracts, doi, publisher, uri, languages, sponsorships, licenses
+    my_results = _make_empty_query()
+    return JsonResponse(my_results.to_dict())
+
+def _make_empty_query(beginning_index=0, end_index=10):
     from elasticsearch_dsl import F, Q
 
     my_search = ShareSearch()
@@ -24,6 +27,4 @@ def ten(request):
     analyze_wildcard=True  # This will make elasticsearch pay attention to the asterisk (which matches anything)
     )
 
-    my_results = my_search.execute()
-    return JsonResponse(my_results.to_dict())
-
+    return my_search[beginning_index:end_index].execute()
