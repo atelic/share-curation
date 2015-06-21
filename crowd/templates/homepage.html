@@ -33,28 +33,11 @@
 <script src="{% static 'js/jquery.min.js' %}"></script>
 <script> 
 
-    // base schema data
-    var base_schema = {
-        id: "sharedata",
-        title: "SHARE Schema",
-        type: "object",
-        properties: {
-            title: {
-                type: "string",
-                format: "text",
-                title: "Title"
-            },
-            description: {
-                type: "string", 
-                format: "textarea", 
-                title: "Abstract"
-            },
-        }
-    };
-
-    var share_schema = base_schema;
+    
 
     var hits;
+    var base_schema;
+    var share_schema;
     $(document.body).on('click', '#submit', function(e){
         e.preventDefault();
         $.ajax({
@@ -71,6 +54,43 @@
                 }
 
                 document.getElementById("select-share-template").innerHTML = current;
+
+                // base schema data
+                base_schema = {
+                    id: "basedata",
+                    title: "SHARE Schema",
+                    type: "object",
+                    properties: {
+                        title: {
+                            type: "string",
+                            format: "text",
+                            title: "Title"
+                        },
+                        description: {
+                            type: "string", 
+                            format: "textarea", 
+                            title: "Abstract"
+                        },
+                    }
+                };
+
+                share_schema = {
+                    id: "sharedata",
+                    title: "SHARE Schema",
+                    type: "object",
+                    properties: {
+                        title: {
+                            type: "string",
+                            format: "text",
+                            title: "Title"
+                        },
+                        description: {
+                            type: "string", 
+                            format: "textarea", 
+                            title: "Abstract"
+                        },
+                    }
+                };
 
                 jedit(hits);
 
@@ -191,7 +211,24 @@ function jedit(hits) {
     });
 
     var loadData = function(schemas, arrays, which) {
-        share_schema = base_schema;
+        //console.log(base_schema);
+        share_schema = {
+            id: "sharedata",
+            title: "SHARE Schema",
+            type: "object",
+            properties: {
+                title: {
+                    type: "string",
+                    format: "text",
+                    title: "Title"
+                },
+                description: {
+                    type: "string", 
+                    format: "textarea", 
+                    title: "Abstract"
+                },
+            }
+        };
         schema_data = base_data;
         titles = [];
         // incorrect data input
@@ -217,7 +254,7 @@ function jedit(hits) {
             // if field name is in the properties of the share data 
             if (parseInt(index) !== parseInt('-1')) {
                 if (f === "contributors") {
-                    console.log(schemas[which]._source[f]);
+                    //console.log(schemas[which]._source[f]);
                     if (schemas[which]._source[f].length > 1) {
                         var contrib;
                         for (contrib in schemas[which]._source[f]) {
@@ -321,9 +358,75 @@ function jedit(hits) {
                             }
 
                         }
+                    } else {
+                        share_schema.properties["Contributor 1"] = {
+                            title: "Contributor 1",
+                            format: "text",
+                            type: "object",
+                            properties: {
+                                additionalName: {
+                                    type: "string",
+                                    format: "text",
+                                    title: "Additional Name",
+                                    hidden: false
+                                },
+                                familyName: {
+                                    type: "string",
+                                    format: "text",
+                                    title: "Family Name",
+                                    hidden: false
+                                },
+                                givenName: {
+                                    type: "string",
+                                    format: "text",
+                                    title: "Given Name",
+                                    hidden: false
+                                },
+                                name: {
+                                    type: "string",
+                                    format: "text",
+                                    title: "Name",
+                                    hidden: false
+                                },
+                                email: {
+                                    type: "string",
+                                    format: "text",
+                                    title: "Email",
+                                    hidden: true
+                                },
+                                family: {
+                                    type: "string",
+                                    format: "text",
+                                    title: "Family Name",
+                                    hidden: true
+                                },
+                                given: {
+                                    type: "string",
+                                    format: "text",
+                                    title: "Given Name",
+                                    hidden: true
+                                },
+                                middle: {
+                                    type: "string",
+                                    format: "text",
+                                    title: "Middle Name",
+                                    hidden: true
+                                }
+                            },
+                        };
+                        schema_data["Contributor 1"] = {
+                            additionalName: "",
+                            familyName: "",
+                            givenName: "",
+                            name: "",
+                            email: "",
+                            family: "",
+                            given: "",
+                            middle: ""
+ 
+                        };
                     }
-                    
-                    
+                                       
                 } else {
                     // saving loading data to schema_data for non-contributor
                     schema_data[f] = schemas[which]._source[f];
