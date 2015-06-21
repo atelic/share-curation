@@ -1,394 +1,382 @@
 <!DOCTYPE html>
 <html>
-<head lang="en">
-    <meta charset="UTF-8">
-    <title>SHARE Homepage</title>
+	<head lang="en">
+		<meta charset="UTF-8">
+		<title>SHARE Homepage</title>
 
-    {% load static %}
+		{% load static %}
 
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">  
+		<link rel="stylesheet" href="{% static 'css/style.css' %}">
+		<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">  
 
-</head>
-<body style="width: 100%;height: 100%;">
-<h1>Welcome to SHARE</h1>
+	</head>
+	<body style="width: 100%;height: 100%;">
+		<h1>Welcome to SHARE</h1>
 
-    <div class='container'>
-        <input id="submit" type="button" value="Load Data" action="/crowd/sharedata"/>
-        <select class="form-control" id="select-share-template">
-            
-        </select>
+		<div class='container'>
+			<input id="submit" class="btn btn-default" type="button" value="Load Data" action="/crowd/sharedata"/>
+			<select class="form-control" id="select-share-template">
+				
+			</select>
 
-      <div class='row'>
-        <div class='span8 col-md-12 columns eight large-8'>
-                  <h2 id="title">Select an option above</h2>
+			<div class='row'>
+				<div class='span8 col-md-12 columns eight large-8'>
+					<h2 id="title">Select an option above</h2>
 
-                  <div id='editor'></div>
-                  <button id="save" type="button" class="btn btn-success">Save</button>
-        </div>
-      </div>
-    </div>
+					<div id='editor'></div>
+					<button id="save" class="btn btn-default" type="button" class="btn btn-success">Save (console.log)</button>
+				</div>
+			</div>
+		</div>
 
-<script src="{% static 'js/jsoneditor.js' %}"></script>
-<script src="{% static 'js/jquery.min.js' %}"></script>
-<script> 
+		<script src="{% static 'js/jsoneditor.js' %}"></script>
+		<script src="{% static 'js/jquery.min.js' %}"></script>
+		<script> 
 
-    // base schema data
-    var base_schema = {
-        id: "sharedata",
-        title: "SHARE Schema",
-        type: "object",
-        properties: {
-            title: {
-                type: "string",
-                format: "text",
-                title: "Title"
-            },
-            description: {
-                type: "string", 
-                format: "textarea", 
-                title: "Abstract"
-            },
-        }
-    };
+		// base schema data
+		var base_schema = {
+			id: "sharedata",
+			title: "SHARE Schema",
+			type: "object",
+			properties: {
+				title: {
+					type: "string",
+					format: "text",
+					title: "Title"
+				},
+				description: {
+					type: "string", 
+					format: "textarea", 
+					title: "Abstract"
+				},
+			}
+		};
 
-    var share_schema = base_schema;
+		var share_schema = base_schema;
 
-    var hits;
-    $(document.body).on('click', '#submit', function(e){
-        e.preventDefault();
-        $.ajax({
-            url: $(this).attr('action'),
-            dataType:'json',
-            success: function(response){ 
-                hits = response.hits.hits;
+		var hits;
+		$(document.body).on('click', '#submit', function(e){
+			e.preventDefault();
+			$.ajax({
+				url: $(this).attr('action'),
+				dataType:'json',
+				success: function(response){ 
+					hits = response.hits.hits;
 
-                var option;
-                var current = "<option value=''>Please select an option</option>";
+					var option;
+					var current = "<option value=''>Please select an option</option>";
 
-                for (option in hits) {
-                    current = current + "<option value=" + hits[option]._id + ">" + hits[option]._id + "</option>";
-                }
+					for (option in hits) {
+						current = current + "<option value=" + hits[option]._id + ">" + hits[option]._id + "</option>";
+					}
 
-                document.getElementById("select-share-template").innerHTML = current;
+					document.getElementById("select-share-template").innerHTML = current;
 
-                jedit(hits);
+					jedit(hits);
 
-            },
-            async: false
-        });
-        
-    });    
+				},
+				async: false
+			});
+			
+		});    
 
-function jedit(hits) {
-    var $editor = document.getElementById('editor');
- 
-    var schema_data = [];
-    var init_schemas = [];
-    var titles = [];
-    var editor;
+		function jedit(hits) {
+			var $editor = document.getElementById('editor');
+			
+			var schema_data = [];
+			var init_schemas = [];
+			var titles = [];
+			var editor;
 
-    // initial schema_data
-    var base_data = {
-        type: "object",
-        title: "",
-        description: "",
-    };
+			// initial schema_data
+			var base_data = {
+				type: "object",
+				title: "",
+				description: "",
+			};
 
-    schema_data = base_data;
+			schema_data = base_data;
 
-    // 10 results from call to crowd/sharedata
-    init_schemas = hits;
+			// 10 results from call to crowd/sharedata
+			init_schemas = hits;
 
-    var which_schema = 0;
+			var which_schema = 0;
 
-    // this is how the import and export should work
-    //var str = JSON.stringify(prereg);
-    //console.log(str);
-    //console.log(JSON.parse(str));
+			// this is how the import and export should work
+			//var str = JSON.stringify(prereg);
+			//console.log(str);
+			//console.log(JSON.parse(str));
 
-    // add for single select of check boxes
-    JSONEditor.defaults.resolvers.unshift(function(schema) {
-        if(schema.type === "array" && schema.items && !(Array.isArray(schema.items)) && schema.uniqueItems && schema.items["enum"] && ['string','number','integer'].indexOf(schema.items.type) >= 0) {
-             return "singleselect";       
-        }    
-    });
+			// add for single select of check boxes
+			JSONEditor.defaults.resolvers.unshift(function(schema) {
+				if(schema.type === "array" && schema.items && !(Array.isArray(schema.items)) && schema.uniqueItems && schema.items["enum"] && ['string','number','integer'].indexOf(schema.items.type) >= 0) {
+					return "singleselect";       
+				}    
+			});
 
-    JSONEditor.defaults.editors.singleselect = JSONEditor.defaults.editors.multiselect.extend({      
-        build: function() {
-            
-            var self = this, i;
-            if(!this.options.compact) this.header = this.label = this.theme.getFormInputLabel(this.getTitle());
-            if(this.schema.description) this.description = this.theme.getFormInputDescription(this.schema.description);
+			JSONEditor.defaults.editors.singleselect = JSONEditor.defaults.editors.multiselect.extend({      
+				build: function() {
+					
+					var self = this, i;
+					if(!this.options.compact) this.header = this.label = this.theme.getFormInputLabel(this.getTitle());
+					if(this.schema.description) this.description = this.theme.getFormInputDescription(this.schema.description);
 
-            if((!this.schema.format && this.option_keys.length < 8) || this.schema.format === "checkbox") {
-                this.input_type = 'checkboxes';
+					if((!this.schema.format && this.option_keys.length < 8) || this.schema.format === "checkbox") {
+						this.input_type = 'checkboxes';
 
-                this.inputs = {};
-                this.controls = {};
-                for(i=0; i<this.option_keys.length; i++) {
-                    this.inputs[this.option_keys[i]] = this.theme.getCheckbox();
-                    this.select_options[this.option_keys[i]] = this.inputs[this.option_keys[i]];
-                    var label = this.theme.getCheckboxLabel(this.option_keys[i]);
-                    this.controls[this.option_keys[i]] = this.theme.getFormControl(label, this.inputs[this.option_keys[i]]);
-                }
+						this.inputs = {};
+						this.controls = {};
+						for(i=0; i<this.option_keys.length; i++) {
+							this.inputs[this.option_keys[i]] = this.theme.getCheckbox();
+							this.select_options[this.option_keys[i]] = this.inputs[this.option_keys[i]];
+							var label = this.theme.getCheckboxLabel(this.option_keys[i]);
+							this.controls[this.option_keys[i]] = this.theme.getFormControl(label, this.inputs[this.option_keys[i]]);
+						}
 
-                this.control = this.theme.getMultiCheckboxHolder(this.controls,this.label,this.description);
-            }
-            else {
-                this.input_type = 'select';
-                this.input = this.theme.getSelectInput(this.option_keys);
-                this.input.multiple = true;
-                this.input.size = Math.min(10,this.option_keys.length);
+						this.control = this.theme.getMultiCheckboxHolder(this.controls,this.label,this.description);
+					}
+					else {
+						this.input_type = 'select';
+						this.input = this.theme.getSelectInput(this.option_keys);
+						this.input.multiple = true;
+						this.input.size = Math.min(10,this.option_keys.length);
 
-                for(i=0; i<this.option_keys.length; i++) {
-                    this.select_options[this.option_keys[i]] = this.input.children[i];
-                }
+						for(i=0; i<this.option_keys.length; i++) {
+							this.select_options[this.option_keys[i]] = this.input.children[i];
+						}
 
-                if(this.schema.readOnly || this.schema.readonly) {
-                    this.always_disabled = true;
-                    this.input.disabled = true;
-                }
+						if(this.schema.readOnly || this.schema.readonly) {
+							this.always_disabled = true;
+							this.input.disabled = true;
+						}
 
-                this.control = this.theme.getFormControl(this.label, this.input, this.description);
-            }
-            
-            this.container.appendChild(this.control);
-            var previous;
-            this.control.addEventListener("mouseover", function(e) {
-                var new_value = [];
-                for(i = 0; i<self.option_keys.length; i++) {
-                    if(self.select_options[self.option_keys[i]].selected || self.select_options[self.option_keys[i]].checked) {
-                        new_value.push(self.select_values[self.option_keys[i]]);
-                    }
-                }
-                previous = new_value;
-                   
-            });
-            this.control.addEventListener('change',function(e) {
-              e.preventDefault();
-              e.stopPropagation();
+						this.control = this.theme.getFormControl(this.label, this.input, this.description);
+					}
+					
+					this.container.appendChild(this.control);
+					var previous;
+					this.control.addEventListener("mouseover", function(e) {
+						var new_value = [];
+						for(i = 0; i<self.option_keys.length; i++) {
+							if(self.select_options[self.option_keys[i]].selected || self.select_options[self.option_keys[i]].checked) {
+								new_value.push(self.select_values[self.option_keys[i]]);
+							}
+						}
+						previous = new_value;
+						
+					});
+					this.control.addEventListener('change',function(e) {
+						e.preventDefault();
+						e.stopPropagation();
 
-              // delete older one using previous
-              var new_value = [];
-                for(i = 0; i<self.option_keys.length; i++) {
-                    if(self.select_options[self.option_keys[i]].selected || self.select_options[self.option_keys[i]].checked) {
+						// delete older one using previous
+						var new_value = [];
+						for(i = 0; i<self.option_keys.length; i++) {
+							if(self.select_options[self.option_keys[i]].selected || self.select_options[self.option_keys[i]].checked) {
 
-                        var str = '"' + self.select_values[self.option_keys[i]] + '"';
-                        var blah = self.select_values[self.option_keys[i]];
-                        if (previous.indexOf(blah) != -1) {
-                            self.select_options[self.option_keys[i]].checked = false;
-                        }
-                         else { 
-                            new_value.push(self.select_values[self.option_keys[i]]);
-                        }
-                    }
-                }
-                self.updateValue(new_value);
-                self.onChange(true);
-            });
-        },
-    });
+								var str = '"' + self.select_values[self.option_keys[i]] + '"';
+								var blah = self.select_values[self.option_keys[i]];
+								if (previous.indexOf(blah) != -1) {
+									self.select_options[self.option_keys[i]].checked = false;
+								}
+								else { 
+									new_value.push(self.select_values[self.option_keys[i]]);
+								}
+							}
+						}
+						self.updateValue(new_value);
+						self.onChange(true);
+					});
+				},
+			});
 
-    var loadData = function(schemas, arrays, which) {
-        share_schema = base_schema;
-        schema_data = base_data;
-        titles = [];
-        // incorrect data input
-        if (schemas[which].length > arrays.length) {
-            alert("The amount of data is inconsistent. Unable to load.");
-            return;
-        } if (schemas[which].length <= 0) {
-            alert("There is no data to load.");
-            return;
-        }
+			var loadData = function(schemas, arrays, which) {
+				share_schema = base_schema;
+				schema_data = base_data;
+				titles = [];
+				// incorrect data input
+				if (schemas[which].length > arrays.length) {
+					alert("The amount of data is inconsistent. Unable to load.");
+					return;
+				} if (schemas[which].length <= 0) {
+					alert("There is no data to load.");
+					return;
+				}
 
-        // all properties of the nested schema
-        var keys = Object.keys(schemas[which]._source);
+				// all properties of the nested schema
+				var keys = Object.keys(schemas[which]._source);
 
-        // list of fields that you want to view
-        var sources = ["title", "description", "contributors"];
-        var field;
-        var index = -1;
-        for (field in sources) {
-            var f = sources[field];
-            index = keys.indexOf(f);
+				// list of fields that you want to view
+				var sources = ["title", "description", "contributors"];
+				var field;
+				var index = -1;
+				for (field in sources) {
+					var f = sources[field];
+					index = keys.indexOf(f);
 
-            // if field name is in the properties of the share data 
-            if (parseInt(index) !== parseInt('-1')) {
-                if (f === "contributors") {
-                    console.log(schemas[which]._source[f]);
-                    if (schemas[which]._source[f].length > 1) {
-                        var contrib;
-                        for (contrib in schemas[which]._source[f]) {
+					// if field name is in the properties of the share data 
+					if (parseInt(index) !== parseInt('-1')) {
+						if (f === "contributors") {
+							console.log(schemas[which]._source[f]);
+							if (schemas[which]._source[f].length > 1) {
+								var contrib;
+								for (contrib in schemas[which]._source[f]) {
 
-                            var new_contributor = "contributors" + contrib;
+									var new_contributor = "contributors" + contrib;
 
-                            // dynamically add a contributor for each contributor
-                            share_schema.properties[new_contributor] = {
-                                title: "Contributor " + (parseInt(contrib) + 1),
-                                format: "text",
-                                type: "object",
-                                properties: {
-                                    additionalName: {
-                                        type: "string",
-                                        format: "text",
-                                        title: "Additional Name",
-                                        hidden: false
-                                    },
-                                    familyName: {
-                                        type: "string",
-                                        format: "text",
-                                        title: "Family Name",
-                                        hidden: false
-                                    },
-                                    givenName: {
-                                        type: "string",
-                                        format: "text",
-                                        title: "Given Name",
-                                        hidden: false
-                                    },
-                                    name: {
-                                        type: "string",
-                                        format: "text",
-                                        title: "Name",
-                                        hidden: false
-                                    },
-                                    email: {
-                                        type: "string",
-                                        format: "text",
-                                        title: "Email",
-                                        hidden: true
-                                    },
-                                    family: {
-                                        type: "string",
-                                        format: "text",
-                                        title: "Family Name",
-                                        hidden: true
-                                    },
-                                    given: {
-                                        type: "string",
-                                        format: "text",
-                                        title: "Given Name",
-                                        hidden: true
-                                    },
-                                    middle: {
-                                        type: "string",
-                                        format: "text",
-                                        title: "Middle Name",
-                                        hidden: true
-                                    }
-                                },
-                            };
+									// dynamically add a contributor for each contributor
+									share_schema.properties[new_contributor] = {
+										title: "Contributor " + (parseInt(contrib) + 1),
+										format: "text",
+										type: "object",
+										properties: {
+											additionalName: {
+												type: "string",
+												format: "text",
+												title: "Additional Name",
+												hidden: false
+											},
+											familyName: {
+												type: "string",
+												format: "text",
+												title: "Family Name",
+												hidden: false
+											},
+											givenName: {
+												type: "string",
+												format: "text",
+												title: "Given Name",
+												hidden: false
+											},
+											name: {
+												type: "string",
+												format: "text",
+												title: "Name",
+												hidden: false
+											},
+											email: {
+												type: "string",
+												format: "text",
+												title: "Email",
+												hidden: true
+											},
+											family: {
+												type: "string",
+												format: "text",
+												title: "Family Name",
+												hidden: true
+											},
+											given: {
+												type: "string",
+												format: "text",
+												title: "Given Name",
+												hidden: true
+											},
+											middle: {
+												type: "string",
+												format: "text",
+												title: "Middle Name",
+												hidden: true
+											}
+										},
+									};
 
-                            schema_data[new_contributor] = {
-                                additionalName: "",
-                                familyName: "",
-                                givenName: "",
-                                name: "",
-                                email: "",
-                                family: "",
-                                given: "",
-                                middle: ""
-     
-                            };
+									schema_data[new_contributor] = {
+										additionalName: "",
+										familyName: "",
+										givenName: "",
+										name: "",
+										email: "",
+										family: "",
+										given: "",
+										middle: ""
+										
+									};
 
-                            // saving loaded data to the schema_data for contributor 
-                            // there are two schemas for names -- institutional and personal
-                            if (schemas[which]._source[f][0].additionalName === "") {
-                                schema_data[new_contributor].email = schemas[which]._source[f][contrib].email;
-                                schema_data[new_contributor].family = schemas[which]._source[f][contrib].familyName;
-                                schema_data[new_contributor].given = schemas[which]._source[f][contrib].givenName;
-                                schema_data[new_contributor].middle = schemas[which]._source[f][contrib].middle;
-                                schema_data[new_contributor].name = schemas[which]._source[f][contrib].name;
+									// saving loaded data to the schema_data for contributor 
+									// there are two schemas for names -- institutional and personal
+									if (schemas[which]._source[f][0].additionalName === "") {
+										schema_data[new_contributor].email = schemas[which]._source[f][contrib].email;
+										schema_data[new_contributor].family = schemas[which]._source[f][contrib].familyName;
+										schema_data[new_contributor].given = schemas[which]._source[f][contrib].givenName;
+										schema_data[new_contributor].middle = schemas[which]._source[f][contrib].middle;
+										schema_data[new_contributor].name = schemas[which]._source[f][contrib].name;
 
-                                // has no current functionality, could create custom json editor handler to hide properties
-                                share_schema.properties[new_contributor].properties.additionalName.hidden = true;
-                                share_schema.properties[new_contributor].properties.familyName.hidden = true;
-                                share_schema.properties[new_contributor].properties.givenName.hidden = true;
-                                share_schema.properties[new_contributor].properties.name.hidden = true;
+										// has no current functionality, could create custom json editor handler to hide properties
+										share_schema.properties[new_contributor].properties.additionalName.hidden = true;
+										share_schema.properties[new_contributor].properties.familyName.hidden = true;
+										share_schema.properties[new_contributor].properties.givenName.hidden = true;
+										share_schema.properties[new_contributor].properties.name.hidden = true;
 
-                                share_schema.properties[new_contributor].properties.email.hidden = false;
-                                share_schema.properties[new_contributor].properties.family.hidden = false;
-                                share_schema.properties[new_contributor].properties.given.hidden = false;
-                                share_schema.properties[new_contributor].properties.middle.hidden = false;
+										share_schema.properties[new_contributor].properties.email.hidden = false;
+										share_schema.properties[new_contributor].properties.family.hidden = false;
+										share_schema.properties[new_contributor].properties.given.hidden = false;
+										share_schema.properties[new_contributor].properties.middle.hidden = false;
 
-                            } else {
-                                schema_data[new_contributor].additionalName = schemas[which]._source[f][contrib].additionalName;
-                                schema_data[new_contributor].familyName = schemas[which]._source[f][contrib].familyName;
-                                schema_data[new_contributor].givenName = schemas[which]._source[f][contrib].givenName;
-                                schema_data[new_contributor].name = schemas[which]._source[f][contrib].name;
-                            }
+									} else {
+										schema_data[new_contributor].additionalName = schemas[which]._source[f][contrib].additionalName;
+										schema_data[new_contributor].familyName = schemas[which]._source[f][contrib].familyName;
+										schema_data[new_contributor].givenName = schemas[which]._source[f][contrib].givenName;
+										schema_data[new_contributor].name = schemas[which]._source[f][contrib].name;
+									}
 
-                        }
-                    }
-                    
-                    
-                } else {
-                    // saving loading data to schema_data for non-contributor
-                    schema_data[f] = schemas[which]._source[f];
-                }
-                
-            }
-            
-        }   
+								}
+							}
+							
+							
+						} else {
+							// saving loading data to schema_data for non-contributor
+							schema_data[f] = schemas[which]._source[f];
+						}
+						
+					}
+					
+				}   
 
-        // load the data for the first schema and display
-        if(editor) editor.destroy();
-        editor = new JSONEditor($editor,{
-            schema: share_schema,
-            theme: 'bootstrap3',
-            disable_collapse: true,
-            disable_edit_json: true,
-            disable_properties: true,
-            no_additional_properties: true
-        });
-        editor.setValue(schema_data);
-        window.editor = editor;
-    };
+				// load the data for the first schema and display
+				if(editor) editor.destroy();
+				editor = new JSONEditor($editor,{
+					schema: share_schema,
+					theme: 'bootstrap3',
+					disable_collapse: true,
+					disable_edit_json: true,
+					disable_properties: true,
+					no_additional_properties: true
+				});
+				editor.setValue(schema_data);
+				window.editor = editor;
+			};
 
-    // get schema that was selected by user
-    $(document.body).on('change', "#select-share-template", function() {  
-        var $this = $(this);
-        var val = $this.val();
-        var tempName = val.replace(/_/g , " ");
+			// get schema that was selected by user
+			$(document.body).on('change', "#select-share-template", function() {  
+				var $this = $(this);
+				var val = $this.val();
+				var tempName = val.replace(/_/g , " ");
 
-        if (val !== '') {
-            document.getElementById("title").innerHTML = tempName;
+				if (val !== '') {
+					document.getElementById("title").innerHTML = tempName;
 
-            var schema;
-            for (schema in init_schemas) {
-                if (init_schemas[schema]._id === val) {
-                    which_schema = schema;
-                    loadData(init_schemas, schema_data, which_schema);
-                } 
-            }
-        } else {
-            document.getElementById("title").innerHTML = "Select an option above";
-        }
-    });
+					var schema;
+					for (schema in init_schemas) {
+						if (init_schemas[schema]._id === val) {
+							which_schema = schema;
+							loadData(init_schemas, schema_data, which_schema);
+						} 
+					}
+				} else {
+					document.getElementById("title").innerHTML = "Select an option above";
+				}
+			});
 
-    // needs to be updated
-    document.getElementById('save').onclick = function () {
-        var schema;
-        var value;
-        for (schema in init_schemas[which_schema]) {
-            if (init_schemas[which_schema][schema].title === editor.options.schema.title) {
-                for (value in editor.getValue()) {
-                   schema_data[schema][value] = editor.getValue()[value];
-                }
-            }
-        } 
-    };
+			// needs to be updated
+			document.getElementById('save').onclick = function () {
+				var schema;
+				var value;
+				console.log(init_schemas[which_schema]);
+			};
 
-};
-</script>
+		};
+		</script>
 
-<div style="position: relative">
-    <p style="position: fixed; bottom: 0; width:100%;">
-        <strong>COS</strong>
-    </p>
-</div>
-
-</body>
+	</body>
 </html>
