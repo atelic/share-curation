@@ -29,17 +29,11 @@
       </div>
     </div>
 
-
 <script src="{% static 'js/jsoneditor.js' %}"></script>
 <script src="{% static 'js/jquery.min.js' %}"></script>
 <script> 
-    
-    // other contributor schema
-    // email:
-    // family:
-    // given:
-    // middle:
 
+    // base schema data
     var base_schema = {
         id: "sharedata",
         title: "SHARE Schema",
@@ -86,10 +80,6 @@
         
     });    
 
-
-
-    //console.log(hits);
-
 function jedit(hits) {
     var $editor = document.getElementById('editor');
  
@@ -98,22 +88,16 @@ function jedit(hits) {
     var titles = [];
     var editor;
 
-    schema_data = {
+    // initial schema_data
+    var base_data = {
         type: "object",
         title: "",
         description: "",
-        contributors: {
-            additionalName: "",
-            familyName: "",
-            givenName: "",
-            name: "",
-            email: "",
-            family: "",
-            given: "",
-            middle: ""
-        },
     };
 
+    schema_data = base_data;
+
+    // 10 results from call to crowd/sharedata
     init_schemas = hits;
 
     var which_schema = 0;
@@ -138,35 +122,35 @@ function jedit(hits) {
             if(this.schema.description) this.description = this.theme.getFormInputDescription(this.schema.description);
 
             if((!this.schema.format && this.option_keys.length < 8) || this.schema.format === "checkbox") {
-              this.input_type = 'checkboxes';
+                this.input_type = 'checkboxes';
 
-              this.inputs = {};
-              this.controls = {};
-              for(i=0; i<this.option_keys.length; i++) {
-                this.inputs[this.option_keys[i]] = this.theme.getCheckbox();
-                this.select_options[this.option_keys[i]] = this.inputs[this.option_keys[i]];
-                var label = this.theme.getCheckboxLabel(this.option_keys[i]);
-                this.controls[this.option_keys[i]] = this.theme.getFormControl(label, this.inputs[this.option_keys[i]]);
-              }
+                this.inputs = {};
+                this.controls = {};
+                for(i=0; i<this.option_keys.length; i++) {
+                    this.inputs[this.option_keys[i]] = this.theme.getCheckbox();
+                    this.select_options[this.option_keys[i]] = this.inputs[this.option_keys[i]];
+                    var label = this.theme.getCheckboxLabel(this.option_keys[i]);
+                    this.controls[this.option_keys[i]] = this.theme.getFormControl(label, this.inputs[this.option_keys[i]]);
+                }
 
-              this.control = this.theme.getMultiCheckboxHolder(this.controls,this.label,this.description);
+                this.control = this.theme.getMultiCheckboxHolder(this.controls,this.label,this.description);
             }
             else {
-              this.input_type = 'select';
-              this.input = this.theme.getSelectInput(this.option_keys);
-              this.input.multiple = true;
-              this.input.size = Math.min(10,this.option_keys.length);
+                this.input_type = 'select';
+                this.input = this.theme.getSelectInput(this.option_keys);
+                this.input.multiple = true;
+                this.input.size = Math.min(10,this.option_keys.length);
 
-              for(i=0; i<this.option_keys.length; i++) {
-                this.select_options[this.option_keys[i]] = this.input.children[i];
-              }
+                for(i=0; i<this.option_keys.length; i++) {
+                    this.select_options[this.option_keys[i]] = this.input.children[i];
+                }
 
-              if(this.schema.readOnly || this.schema.readonly) {
-                this.always_disabled = true;
-                this.input.disabled = true;
-              }
+                if(this.schema.readOnly || this.schema.readonly) {
+                    this.always_disabled = true;
+                    this.input.disabled = true;
+                }
 
-              this.control = this.theme.getFormControl(this.label, this.input, this.description);
+                this.control = this.theme.getFormControl(this.label, this.input, this.description);
             }
             
             this.container.appendChild(this.control);
@@ -200,14 +184,15 @@ function jedit(hits) {
                         }
                     }
                 }
-              self.updateValue(new_value);
-              self.onChange(true);
+                self.updateValue(new_value);
+                self.onChange(true);
             });
         },
     });
 
     var loadData = function(schemas, arrays, which) {
         share_schema = base_schema;
+        schema_data = base_data;
         titles = [];
         // incorrect data input
         if (schemas[which].length > arrays.length) {
@@ -218,17 +203,18 @@ function jedit(hits) {
             return;
         }
 
+        // all properties of the nested schema
         var keys = Object.keys(schemas[which]._source);
 
-        //console.log(schemas[which]._source);
-        //console.log(keys);
+        // list of fields that you want to view
         var sources = ["title", "description", "contributors"];
         var field;
         var index = -1;
         for (field in sources) {
             var f = sources[field];
             index = keys.indexOf(f);
-            //console.log(index);
+
+            // if field name is in the properties of the share data 
             if (parseInt(index) !== parseInt('-1')) {
                 if (f === "contributors") {
                     console.log(schemas[which]._source[f]);
@@ -238,8 +224,9 @@ function jedit(hits) {
 
                             var new_contributor = "contributors" + contrib;
 
+                            // dynamically add a contributor for each contributor
                             share_schema.properties[new_contributor] = {
-                                title: new_contributor,
+                                title: "Contributor " + (parseInt(contrib) + 1),
                                 format: "text",
                                 type: "object",
                                 properties: {
@@ -290,7 +277,6 @@ function jedit(hits) {
                                         format: "text",
                                         title: "Middle Name",
                                         hidden: true
-
                                     }
                                 },
                             };
@@ -307,8 +293,8 @@ function jedit(hits) {
      
                             };
 
-                            
-                            //console.log(schema_data[new_contributor].email); 
+                            // saving loaded data to the schema_data for contributor 
+                            // there are two schemas for names -- institutional and personal
                             if (schemas[which]._source[f][0].additionalName === "") {
                                 schema_data[new_contributor].email = schemas[which]._source[f][contrib].email;
                                 schema_data[new_contributor].family = schemas[which]._source[f][contrib].familyName;
@@ -316,6 +302,7 @@ function jedit(hits) {
                                 schema_data[new_contributor].middle = schemas[which]._source[f][contrib].middle;
                                 schema_data[new_contributor].name = schemas[which]._source[f][contrib].name;
 
+                                // has no current functionality, could create custom json editor handler to hide properties
                                 share_schema.properties[new_contributor].properties.additionalName.hidden = true;
                                 share_schema.properties[new_contributor].properties.familyName.hidden = true;
                                 share_schema.properties[new_contributor].properties.givenName.hidden = true;
@@ -335,40 +322,16 @@ function jedit(hits) {
 
                         }
                     }
-
-                    //console.log(share_schema);
                     
                     
                 } else {
+                    // saving loading data to schema_data for non-contributor
                     schema_data[f] = schemas[which]._source[f];
                 }
                 
-                //console.log(schema_data[f]);
             }
             
         }   
-
-        //console.log(schema_data);
-
-        // load nav bar -- need to account for situations when there is only one page (take away prev and next)
-        // var tabs = '<li><a id="prev" href="#" aria-label="Previous"><span aria-hidden=true>&laquo;</span></a></li>';
-        // var pages;
-        // for (pages in schemas[which]._source) {
-        //     if (pages === "description") {
-        //         console.log(schema_data["description"]);
-        //         //schema_data.description = schemas[which]._source.pages;
-        //     } else if (pages === "title") {
-        //         console.log(schema_data["title"]);
-        //     }
-        //     titles.push(pages);
-        //     tabs = tabs + '<li><a id="tab' + pages + '" href="#">' + pages + '</a></li>';
-        // }
-
-        // tabs = tabs + '<li><a id="next" href="#" aria-label="Next"><span aria-hidden=true>&raquo;</span></a></li>';
-
-        // document.getElementById("myNavBar").innerHTML = tabs;
-
-        //console.log(titles[1]);
 
         // load the data for the first schema and display
         if(editor) editor.destroy();
@@ -383,52 +346,6 @@ function jedit(hits) {
         editor.setValue(schema_data);
         window.editor = editor;
     };
-
-    // called when switches pages
-    var reload = function(schemas, data, num, which) {
-        if(editor) editor.destroy();
-        editor = new JSONEditor($editor,{
-            schema: share_schema,
-            theme: 'bootstrap3',
-            disable_collapse: true,
-            disable_edit_json: true,
-            disable_properties: true,
-            no_additional_properties: true
-        });
-        editor.setValue(schema_data);
-        window.editor = editor;
-    };
-
-
-    // need to update so that it doesn't register when the top nav bar is clicked
-    $(document.body).on('click', 'a', function() {
-        var index = 0;
-        var clicked = this.id;
-        if (clicked === 'prev') {
-            index = titles.indexOf(editor.options.schema.title);
-            if (index === 0) {
-                reload(init_schemas, schema_data, 0, which_schema);
-            } else {
-                reload(init_schemas, schema_data, parseInt(index) - 1, which_schema); 
-            }
-        } else if (clicked === 'next') {
-            index = titles.indexOf(editor.options.schema.title);
-            var max = init_schemas[which_schema].length - 1;
-            if (index === max) {
-                reload(init_schemas, schema_data, max, which_schema);
-            } else {
-                reload(init_schemas, schema_data, parseInt(index) + 1, which_schema); 
-            }
-            
-        } else {
-            var id = clicked.split("tab");
-            reload(init_schemas, schema_data, id[1], which_schema);
-        }
-
-        // this doesn't really work...needs to add query string to url without page refresh
-        //window.history.pushState('container', editor.options.schema.title, window.location.href + '?' + editor.options.schema.title);
-        
-    });
 
     // get schema that was selected by user
     $(document.body).on('change', "#select-share-template", function() {  
@@ -446,13 +363,12 @@ function jedit(hits) {
                     loadData(init_schemas, schema_data, which_schema);
                 } 
             }
-            
-            //reload(init_schemas, schema_data, 0);
         } else {
             document.getElementById("title").innerHTML = "Select an option above";
         }
     });
 
+    // needs to be updated
     document.getElementById('save').onclick = function () {
         var schema;
         var value;
