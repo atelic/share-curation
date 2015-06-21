@@ -213,7 +213,7 @@ function jedit(hits) {
     var loadData = function(schemas, arrays, which) {
         //console.log(base_schema);
         share_schema = {
-            id: "sharedata",
+            id: schemas[which]._id,
             title: "SHARE Schema",
             type: "object",
             properties: {
@@ -475,10 +475,20 @@ function jedit(hits) {
     document.getElementById('save').onclick = function () {
         var schema;
         var value;
-        for (schema in init_schemas[which_schema]) {
-            if (init_schemas[which_schema][schema].title === editor.options.schema.title) {
+		//console.log(init_schemas);
+		//console.log(init_schemas[which_schema]);
+        for (schema in init_schemas) {
+			// TODO: don't let empty string
+            if (init_schemas[schema]._id === editor.options.schema.id) {
                 for (value in editor.getValue()) {
-                   schema_data[schema][value] = editor.getValue()[value];
+					//console.log(value);
+					if (! value.contains('Contributor')) {
+						//console.log(init_schemas[schema]._source[value]);
+						//console.log(editor.getValue()[value]);
+						init_schemas[schema]._source[value] = editor.getValue()[value];
+						init_schemas[schema][value] = editor.getValue()[value];
+						console.log(init_schemas[schema])
+					}
                 }
             }
         } 
@@ -486,12 +496,14 @@ function jedit(hits) {
 
 };
 </script>
-
+<!--
 <div style="position: relative">
     <p style="position: fixed; bottom: 0; width:100%;">
         <strong>COS</strong>
     </p>
 </div>
 
+
+-->
 </body>
 </html>
