@@ -14,7 +14,7 @@
 <h1>Welcome to SHARE</h1>
 
     <div class='container'>
-        <input id="submit" type="button" value="Load Data" action="/crowd/sharedata"/>
+        <!--  <input id="submit" type="button" value="Load Data" action="/crowd/sharedata"/> -->
         <select class="form-control" id="select-share-template">
             
         </select>
@@ -33,15 +33,12 @@
 <script src="{% static 'js/jquery.min.js' %}"></script>
 <script> 
 
-    
-
-    var hits;
-    var base_schema;
-    var share_schema;
-    $(document.body).on('click', '#submit', function(e){
-        e.preventDefault();
+var hits;
+var base_schema;
+var share_schema;
+$(function(){
         $.ajax({
-            url: $(this).attr('action'),
+            url: "/crowd/sharedata",
             dataType:'json',
             success: function(response){ 
                 hits = response.hits.hits;
@@ -481,13 +478,12 @@ function jedit(hits) {
 			// TODO: don't let empty string
             if (init_schemas[schema]._id === editor.options.schema.id) {
                 for (value in editor.getValue()) {
-					//console.log(value);
 					if (! value.contains('Contributor')) {
-						//console.log(init_schemas[schema]._source[value]);
-						//console.log(editor.getValue()[value]);
-						init_schemas[schema]._source[value] = editor.getValue()[value];
-						init_schemas[schema][value] = editor.getValue()[value];
-						console.log(init_schemas[schema])
+						if (editor.getValue()[value] !== '') {
+							init_schemas[schema]._source[value] = editor.getValue()[value];
+							init_schemas[schema][value] = editor.getValue()[value];
+							console.log(init_schemas[schema]);
+						}	
 					}
                 }
             }
