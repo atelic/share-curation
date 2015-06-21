@@ -2,3 +2,8 @@ body {
     padding-top: 15px; /* body padding for fixed top nav */
     position: relative; /* for bootstrap affix */
 }
+h1 {
+	padding-bottom: 15px; /* body padding for fixed top nav */
+    position: relative; /* for bootstrap affix */
+    text-align: center;
+}
