@@ -294,18 +294,6 @@ function jedit(hits) {
                                         title: "Email",
                                         hidden: true
                                     },
-                                    family: {
-                                        type: "string",
-                                        format: "text",
-                                        title: "Family Name",
-                                        hidden: true
-                                    },
-                                    given: {
-                                        type: "string",
-                                        format: "text",
-                                        title: "Given Name",
-                                        hidden: true
-                                    },
                                     middle: {
                                         type: "string",
                                         format: "text",
@@ -319,10 +307,8 @@ function jedit(hits) {
                                 additionalName: "",
                                 familyName: "",
                                 givenName: "",
-                                name: "",
                                 email: "",
                                 family: "",
-                                given: "",
                                 middle: ""
      
                             };
@@ -331,20 +317,18 @@ function jedit(hits) {
                             // there are two schemas for names -- institutional and personal
                             if (schemas[which]._source[f][0].additionalName === "") {
                                 schema_data[new_contributor].email = schemas[which]._source[f][contrib].email;
-                                schema_data[new_contributor].family = schemas[which]._source[f][contrib].familyName;
-                                schema_data[new_contributor].given = schemas[which]._source[f][contrib].givenName;
+                                schema_data[new_contributor].familyName = schemas[which]._source[f][contrib].familyName;
+                                schema_data[new_contributor].givenName = schemas[which]._source[f][contrib].givenName;
                                 schema_data[new_contributor].middle = schemas[which]._source[f][contrib].middle;
                                 schema_data[new_contributor].name = schemas[which]._source[f][contrib].name;
 
                                 // has no current functionality, could create custom json editor handler to hide properties
                                 share_schema.properties[new_contributor].properties.additionalName.hidden = true;
-                                share_schema.properties[new_contributor].properties.familyName.hidden = true;
-                                share_schema.properties[new_contributor].properties.givenName.hidden = true;
                                 share_schema.properties[new_contributor].properties.name.hidden = true;
 
                                 share_schema.properties[new_contributor].properties.email.hidden = false;
-                                share_schema.properties[new_contributor].properties.family.hidden = false;
-                                share_schema.properties[new_contributor].properties.given.hidden = false;
+                                share_schema.properties[new_contributor].properties.familyName.hidden = false;
+                                share_schema.properties[new_contributor].properties.givenName.hidden = false;
                                 share_schema.properties[new_contributor].properties.middle.hidden = false;
 
                             } else {
@@ -391,18 +375,6 @@ function jedit(hits) {
                                     title: "Email",
                                     hidden: true
                                 },
-                                family: {
-                                    type: "string",
-                                    format: "text",
-                                    title: "Family Name",
-                                    hidden: true
-                                },
-                                given: {
-                                    type: "string",
-                                    format: "text",
-                                    title: "Given Name",
-                                    hidden: true
-                                },
                                 middle: {
                                     type: "string",
                                     format: "text",
@@ -417,8 +389,6 @@ function jedit(hits) {
                             givenName: "",
                             name: "",
                             email: "",
-                            family: "",
-                            given: "",
                             middle: ""
  
                         };
@@ -471,20 +441,35 @@ function jedit(hits) {
     // needs to be updated
     document.getElementById('save').onclick = function () {
         var schema;
-        var value;
+        var $value;
 		//console.log(init_schemas);
 		//console.log(init_schemas[which_schema]);
         for (schema in init_schemas) {
 			// TODO: don't let empty string
             if (init_schemas[schema]._id === editor.options.schema.id) {
-                for (value in editor.getValue()) {
-					if (! value.contains('Contributor')) {
-						if (editor.getValue()[value] !== '') {
-							init_schemas[schema]._source[value] = editor.getValue()[value];
-							init_schemas[schema][value] = editor.getValue()[value];
-							console.log(init_schemas[schema]);
+                for ($value in editor.getValue()) {
+					if (!$value.contains("Contributor") && !$value.contains("contributor")) {
+						if (editor.getValue()[$value] !== '') {
+							init_schemas[schema]._source[$value] = editor.getValue()[$value];
+							init_schemas[schema][$value] = editor.getValue()[$value];
+							//console.log(init_schemas[schema]);
 						}	
-					}
+					} else {
+                        if ($value.contains("Contributor")) {
+
+                            //console.log(init_schemas[schema]._source.contributors);
+                            //init_schemas[schema]._source["contributors"] = editor.getValue()[$value];
+                        } else {
+                            var g = $value.match(/[0-9]/);
+                            var index = parseInt(g[0]);
+                            init_schemas[schema]._source.contributors[index] = editor.getValue()[$value];
+
+                            //console.log("contributor");
+                            //console.log(init_schemas[schema]._source.contributors[index]); 
+                            //console.log(editor.getValue()[$value]); 
+                        }
+                        
+                    }
                 }
             }
         } 
