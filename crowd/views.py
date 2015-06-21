@@ -14,4 +14,7 @@ def ten(request):
     search = ShareSearch()
     first_ten = search.execute()
     return JsonResponse(first_ten.to_dict())
+
+def getData(request):
+	return HttpResponse(request, 'crowd/sharedata')
  

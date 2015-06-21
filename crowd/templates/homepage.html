@@ -13,9 +13,8 @@
 <body style="width: 100%;height: 100%;">
 <h1>Welcome to SHARE</h1>
 
-
-
     <div class='container'>
+        <input id="submit" type="button" value="Load Data" action="/crowd/sharedata"/>
         <select class="form-control" id="select-share-template">
             
         </select>
@@ -23,11 +22,6 @@
       <div class='row'>
         <div class='span8 col-md-12 columns eight large-8'>
                   <h2 id="title">Select an option above</h2>
-                  <nav>
-                    <ul id="myNavBar" class="pagination">
- 
-                    </ul>
-                  </nav>
 
                   <div id='editor'></div>
                   <button id="save" type="button" class="btn btn-success">Save</button>
@@ -35,362 +29,92 @@
       </div>
     </div>
 
-<script type="text/javascript">
-    var option;
-    var options = ["Open-Ended_Registration", "OSF-Standard_Pre-Data_Collection_Registration", "Replication_Recipe_(Brandt_et_al.,_2013):_Post-Completion", "Replication_Recipe_(Brandt_et_al.,_2013):_Pre-Registration"];
-    var current = "<option value=''>Please select an option</option>";
-
-    for (option in options) {
-        current = current + "<option value=" + options[option] + ">" + options[option] + "</option>";
-    }
-
-    document.getElementById("select-share-template").innerHTML = current;
-
-</script>
-
 
 <script src="{% static 'js/jsoneditor.js' %}"></script>
 <script src="{% static 'js/jquery.min.js' %}"></script>
 <script> 
-(function() {
+    
+    // other contributor schema
+    // email:
+    // family:
+    // given:
+    // middle:
+
+    var base_schema = {
+        id: "sharedata",
+        title: "SHARE Schema",
+        type: "object",
+        properties: {
+            title: {
+                type: "string",
+                format: "text",
+                title: "Title"
+            },
+            description: {
+                type: "string", 
+                format: "textarea", 
+                title: "Abstract"
+            },
+        }
+    };
+
+    var share_schema = base_schema;
+
+    var hits;
+    $(document.body).on('click', '#submit', function(e){
+        e.preventDefault();
+        $.ajax({
+            url: $(this).attr('action'),
+            dataType:'json',
+            success: function(response){ 
+                hits = response.hits.hits;
+
+                var option;
+                var current = "<option value=''>Please select an option</option>";
+
+                for (option in hits) {
+                    current = current + "<option value=" + hits[option]._id + ">" + hits[option]._id + "</option>";
+                }
+
+                document.getElementById("select-share-template").innerHTML = current;
+
+                jedit(hits);
+
+            },
+            async: false
+        });
+        
+    });    
+
+
+
+    //console.log(hits);
+
+function jedit(hits) {
     var $editor = document.getElementById('editor');
  
     var schema_data = [];
     var init_schemas = [];
-    var prereg = [];
-    var open_ended = [];
-    var postcomp = [];
-    var osf_stand = [];
     var titles = [];
     var editor;
 
-     schema_data = [
-        {
-            item1: "an answer",
-            item2: "an answer",
-            item3: "an answer",
-            item4: "an answer",
-            item5: "an answer",
-            item6: "an answer",
-            item7: "an answer",
-            item8: "an answer",
-            item9: "an answer",
-            summary: "a summary",
-            item29: "an answer",
-            datacompletion: "yes",
-            looked: "yes",
-            comments: "an answer",
+    schema_data = {
+        type: "object",
+        title: "",
+        description: "",
+        contributors: {
+            additionalName: "",
+            familyName: "",
+            givenName: "",
+            name: "",
+            email: "",
+            family: "",
+            given: "",
+            middle: ""
         },
-        {
-            item10: "yes",
-            item11: "an answer",
-            item12: "an answer",
-            item13: "an answer",
-            item14: "an answer",
-            item15: "an answer",
-            item16: "an answer",
-            item30: "an answer",
-            item31: "an answer",
-            item32: "significantly different from the original effect size",
-            item33: "success",
-            item34: "an answer",
-            item35: "an answer",
-            item36: "an answer",
-            item37: "an answer",
+    };
 
-        },
-        {
-
-            item17: "Exact",
-            item18: "Exact",
-            item19: "Exact",
-            item20: "Exact",
-            item21: "Exact",
-            item22: "Exact",
-            item23: "Exact",
-            item24: "an answer",
-            item25: "an answer",
-        },
-        {
-            item26: "an answer",
-            item27: "an answer",
-            item28: "an answer",
-        }
-    ];
-
-    open_ended = [
-        {
-            id: "Open-Ended_Registration",
-            title: "Open Ended Registration",
-            type: "object",
-            properties: {           
-                summary: {
-                    type: "string",
-                    format: "textarea",
-                    title: "Provide a narrative summary of what is contained in this registration, or how it differs from prior registrations."
-                }          
-            }
-        }
-
-    ];
-
-    osf_stand = [
-        {
-            id: "OSF-Standard_Pre-Data_Collection_Registration",
-            title: "OSF-Standard Pre-Data Collection Registration",
-            type: "object",
-            properties: {
-                datacompletion: {
-                    type: "array",
-                    title: "Is data collection for this project underway or complete?",
-                    uniqueItems: true,
-                    items: {
-                        type: "string",
-                        enum: ["yes", "no"],
-                    },
-                    description: "Choose..."
-                },
-                looked: {
-                    type: "array",
-                    title: "Have you looked at the data?",
-                    uniqueItems: true,
-                    items: {
-                        type: "string",
-                        enum: ["yes", "no"],
-                    },
-                    description: "Choose..."
-                },
-                comments: {
-                    type: "string",
-                    format: "textarea",
-                    title: "Other Comments"
-                }
-            }
-        }
-    ];
-
-    postcomp = [
-        {
-            id: "Replication_Recipe_(Brandt_et_al.,_2013):_Post-Completion",
-            title: "Registering the Replication Attempt",
-            type: "object",
-            properties: {
-                item29: {
-                    type: "string", format: "text", title: "The finalized materials, procedures, analysis plan etc of the replication are registered here"
-                }
-            }
-        },
-        {  
-            title: "Reporting the Replication",
-            type: "object",
-            properties: {
-                item30: {
-                    type: "string", format: "text", title: "The effect size of the replication is"
-                },
-                item31: {
-                    type: "string", format: "text", title: "The confidence interval of the replication effect size is"
-                },
-                item32: {
-                    type: "array", title: "The replication effect size is",
-                    uniqueItems: true,
-                    items: {
-                        type: "string",
-                        enum: ["significantly different from the original effect size", "not significantly different from the original effect size"], 
-                    },
-                    description: "Choose..."
-                },
-                item33: {
-                    type: "array", 
-                    title: "I judge the replication to be a(n)", 
-                    uniqueItems: true,
-                    items: {
-                        type: "string",
-                        enum: ["success", "informative failure to replicate", "practical failure to replicate", "inconclusive"],
-                    },
-                    description: "Choose..."
-                },
-                item34: {
-                    type: "string", format: "textarea", title: "I judge it so because"
-                },
-                item35: {
-                    type: "string", format: "text", title: "Interested experts can obtain my data and syntax here"
-                },
-                item36: {
-                    type: "string", format: "text", title: "All of the analyses were reported in the report or are available here"
-                },
-                item37: {
-                    type: "string", format: "textarea", title: "The limitations of my replication study are"
-                }
-            }
-        }      
-
-    ]
-
-    prereg = [
-        {
-            id: "Replication_Recipe_(Brandt_et_al.,_2013):_Pre-Registration",
-            title: "The Nature of the Effect",
-            type: "object",
-            properties: {
-                item1: {
-                   type: "string", format: "textarea", title: "Verbal description of the effect I am trying to replicate" 
-                },
-                item2: {
-                    type: "string", format: "textarea", title: "It is important to replicate this effect because"
-                },
-                item3: {
-                    type: "string", format: "text", title: "The effect size of the effect I am trying to replicate is"
-                },
-                item4: {
-                    type: "string", format: "text", title: "The confidence interval of the original effect is"
-                },
-                item5: {
-                    type: "string", format: "text", title: "The sample size of the original effect is"
-                },
-                item6: {
-                    type: "string", format: "text", title: "Where was the original study conducted? (e.g., lab, in the field, online)"
-                },
-                item7: {
-                    type: "string", format: "text", title: "What country/region was the original study conducted in?"
-                },
-                item8: {
-                    type: "string", format: "text", title: "What kind of sample did the original study use? (e.g., student, Mturk, representative)"
-                },
-                item9: {
-                    type: "string", format: "text", title: "Was the original study conducted with paper-and-pencil surveys, on a computer, or something else?"
-                }
-            }
-        },
-        {
-            title: "Designing the Replication Study",
-            type: "object",
-            properties: {
-                item10: {
-                    type: "array", title: "Are the original materials for the study available from the author?",
-                    uniqueItems: true,
-                    items: {
-                        type: "string",
-                        enum: ["yes", "no"], 
-                    },
-                    description: "Choose..."
-                },
-                item11: {
-                    type: "string", format: "textarea", title: "I know that assumptions (e.g., about the meaning of the stimuli) in the original study will also hold in my replication because"
-                },
-                item12: {
-                    type: "string", format: "text", title: "Location of the experimenter during data collection"
-                },
-                item13: {
-                    type: "string", format: "text", title: "Experimenter knowledge of participant experimental condition"
-                },
-                item14: {
-                    type: "string", format: "text", title: "Experimenter knowledge of overall hypotheses"
-                },
-                item15: {
-                    type: "string", format: "text", title: "My target sample size is"
-                },
-                item16: {
-                    type: "string", format: "textarea", title: "The rationale for my sample size is"
-                }
-            }
-        },
-        {
-            title: "Documenting Differences between the Original and Replication Study",
-            type: "object",
-            properties: {
-                item17: {
-                    type: "array", title: "The similarities/differences in the instructions are",
-                    uniqueItems: true,
-                    items: {
-                        type: "string",
-                        enum: ["Exact", "Close", "Different"],
-                    },
-                    description: "Choose..."
-                },
-                item18: {
-                    type: "array", title: "The similarities/differences in the measures are", 
-                    uniqueItems: true,
-                    items: {
-                        type: "string",
-                        enum: ["Exact", "Close", "Different"],
-                    },
-                    description: "Choose..."
-                },
-                item19: {
-                    type: "array", title: "The similarities/differences in the stimuli are", 
-                    uniqueItems: true,
-                    items: {
-                        type: "string",
-                        enum: ["Exact", "Close", "Different"],
-                    },
-                    description: "Choose..."
-                },
-                item20: {
-                    type: "array", title: "The similarities/differences in the procedure are", 
-                    uniqueItems: true,
-                    items: {
-                        type: "string",
-                        enum: ["Exact", "Close", "Different"],
-                    },
-                    description: "Choose..."
-                },
-                item21: {
-                    type: "array", title: "The similarities/differences in the location (e.g., lab vs. online; alone vs. in groups) are", 
-                    uniqueItems: true,
-                    items: {
-                        type: "string",
-                        enum: ["Exact", "Close", "Different"],
-                    },
-                    description: "Choose..."
-                },
-                item22: {
-                    type: "array", title: "The similarities/difference in remuneration are", 
-                    uniqueItems: true,
-                    items: {
-                        type: "string",
-                        enum: ["Exact", "Close", "Different"],
-                    },
-                    description: "Choose..."
-                },
-                item23: {
-                    type: "array", title: "The similarities/differences between participant populations are", 
-                    uniqueItems: true,
-                    items: {
-                        type: "string",
-                        enum: ["Exact", "Close", "Different"],
-                    },
-                    description: "Choose..."
-                },
-                item24: {
-                    type: "string", format: "textarea", title: "What differences between the original study and your study might be expected to influence the size and/or direction of the effect?"
-                },
-                item25: {
-                    type: "string", format: "textarea", title: "I have taken the following steps to test whether the differences listed in the previous question will influence the outcome of my replication attempt"
-                }
-            }
-        },
-        {
-            title: "Analysis and Replication Evaluation",
-            type: "object",
-            properties: {
-                item26: {
-                    type: "string", format: "textarea", title: "My exclusion criteria are (e.g., handling outliers, removing participants from analysis)"
-                },
-                item27: {
-                    type: "string", format: "textarea", title: "My analysis plan is (justify differences from the original)"
-                },
-                item28: {
-                    type: "string", format: "textarea", title: "A successful replication is defined as"
-                }
-            }
-        }
-    ];
-
-    // all schemas are in one array of arrays
-    init_schemas.push(open_ended);
-    init_schemas.push(prereg);
-    init_schemas.push(postcomp);
-    init_schemas.push(osf_stand);
+    init_schemas = hits;
 
     var which_schema = 0;
 
@@ -483,6 +207,7 @@
     });
 
     var loadData = function(schemas, arrays, which) {
+        share_schema = base_schema;
         titles = [];
         // incorrect data input
         if (schemas[which].length > arrays.length) {
@@ -493,29 +218,169 @@
             return;
         }
 
+        var keys = Object.keys(schemas[which]._source);
+
+        //console.log(schemas[which]._source);
+        //console.log(keys);
+        var sources = ["title", "description", "contributors"];
+        var field;
+        var index = -1;
+        for (field in sources) {
+            var f = sources[field];
+            index = keys.indexOf(f);
+            //console.log(index);
+            if (parseInt(index) !== parseInt('-1')) {
+                if (f === "contributors") {
+                    console.log(schemas[which]._source[f]);
+                    if (schemas[which]._source[f].length > 1) {
+                        var contrib;
+                        for (contrib in schemas[which]._source[f]) {
+
+                            var new_contributor = "contributors" + contrib;
+
+                            share_schema.properties[new_contributor] = {
+                                title: new_contributor,
+                                format: "text",
+                                type: "object",
+                                properties: {
+                                    additionalName: {
+                                        type: "string",
+                                        format: "text",
+                                        title: "Additional Name",
+                                        hidden: false
+                                    },
+                                    familyName: {
+                                        type: "string",
+                                        format: "text",
+                                        title: "Family Name",
+                                        hidden: false
+                                    },
+                                    givenName: {
+                                        type: "string",
+                                        format: "text",
+                                        title: "Given Name",
+                                        hidden: false
+                                    },
+                                    name: {
+                                        type: "string",
+                                        format: "text",
+                                        title: "Name",
+                                        hidden: false
+                                    },
+                                    email: {
+                                        type: "string",
+                                        format: "text",
+                                        title: "Email",
+                                        hidden: true
+                                    },
+                                    family: {
+                                        type: "string",
+                                        format: "text",
+                                        title: "Family Name",
+                                        hidden: true
+                                    },
+                                    given: {
+                                        type: "string",
+                                        format: "text",
+                                        title: "Given Name",
+                                        hidden: true
+                                    },
+                                    middle: {
+                                        type: "string",
+                                        format: "text",
+                                        title: "Middle Name",
+                                        hidden: true
+
+                                    }
+                                },
+                            };
+
+                            schema_data[new_contributor] = {
+                                additionalName: "",
+                                familyName: "",
+                                givenName: "",
+                                name: "",
+                                email: "",
+                                family: "",
+                                given: "",
+                                middle: ""
+     
+                            };
+
+                            
+                            //console.log(schema_data[new_contributor].email); 
+                            if (schemas[which]._source[f][0].additionalName === "") {
+                                schema_data[new_contributor].email = schemas[which]._source[f][contrib].email;
+                                schema_data[new_contributor].family = schemas[which]._source[f][contrib].familyName;
+                                schema_data[new_contributor].given = schemas[which]._source[f][contrib].givenName;
+                                schema_data[new_contributor].middle = schemas[which]._source[f][contrib].middle;
+                                schema_data[new_contributor].name = schemas[which]._source[f][contrib].name;
+
+                                share_schema.properties[new_contributor].properties.additionalName.hidden = true;
+                                share_schema.properties[new_contributor].properties.familyName.hidden = true;
+                                share_schema.properties[new_contributor].properties.givenName.hidden = true;
+                                share_schema.properties[new_contributor].properties.name.hidden = true;
+
+                                share_schema.properties[new_contributor].properties.email.hidden = false;
+                                share_schema.properties[new_contributor].properties.family.hidden = false;
+                                share_schema.properties[new_contributor].properties.given.hidden = false;
+                                share_schema.properties[new_contributor].properties.middle.hidden = false;
+
+                            } else {
+                                schema_data[new_contributor].additionalName = schemas[which]._source[f][contrib].additionalName;
+                                schema_data[new_contributor].familyName = schemas[which]._source[f][contrib].familyName;
+                                schema_data[new_contributor].givenName = schemas[which]._source[f][contrib].givenName;
+                                schema_data[new_contributor].name = schemas[which]._source[f][contrib].name;
+                            }
+
+                        }
+                    }
+
+                    //console.log(share_schema);
+                    
+                    
+                } else {
+                    schema_data[f] = schemas[which]._source[f];
+                }
+                
+                //console.log(schema_data[f]);
+            }
+            
+        }   
+
+        //console.log(schema_data);
+
         // load nav bar -- need to account for situations when there is only one page (take away prev and next)
-        var tabs = '<li><a id="prev" href="#" aria-label="Previous"><span aria-hidden=true>&laquo;</span></a></li>';
-        var pages;
-        for (pages in schemas[which]) {
-            titles.push(schemas[which][pages].title);
-            tabs = tabs + '<li><a id="tab' + pages + '" href="#">' + schemas[which][pages].title + '</a></li>';
-        }
+        // var tabs = '<li><a id="prev" href="#" aria-label="Previous"><span aria-hidden=true>&laquo;</span></a></li>';
+        // var pages;
+        // for (pages in schemas[which]._source) {
+        //     if (pages === "description") {
+        //         console.log(schema_data["description"]);
+        //         //schema_data.description = schemas[which]._source.pages;
+        //     } else if (pages === "title") {
+        //         console.log(schema_data["title"]);
+        //     }
+        //     titles.push(pages);
+        //     tabs = tabs + '<li><a id="tab' + pages + '" href="#">' + pages + '</a></li>';
+        // }
 
-        tabs = tabs + '<li><a id="next" href="#" aria-label="Next"><span aria-hidden=true>&raquo;</span></a></li>';
+        // tabs = tabs + '<li><a id="next" href="#" aria-label="Next"><span aria-hidden=true>&raquo;</span></a></li>';
 
-        document.getElementById("myNavBar").innerHTML = tabs;
+        // document.getElementById("myNavBar").innerHTML = tabs;
+
+        //console.log(titles[1]);
 
         // load the data for the first schema and display
         if(editor) editor.destroy();
         editor = new JSONEditor($editor,{
-            schema: schemas[which][0],
+            schema: share_schema,
             theme: 'bootstrap3',
             disable_collapse: true,
             disable_edit_json: true,
             disable_properties: true,
             no_additional_properties: true
         });
-        editor.setValue(arrays[0]);
+        editor.setValue(schema_data);
         window.editor = editor;
     };
 
@@ -523,14 +388,14 @@
     var reload = function(schemas, data, num, which) {
         if(editor) editor.destroy();
         editor = new JSONEditor($editor,{
-            schema: schemas[which][num],
+            schema: share_schema,
             theme: 'bootstrap3',
             disable_collapse: true,
             disable_edit_json: true,
             disable_properties: true,
             no_additional_properties: true
         });
-        editor.setValue(data[num]);
+        editor.setValue(schema_data);
         window.editor = editor;
     };
 
@@ -576,7 +441,7 @@
 
             var schema;
             for (schema in init_schemas) {
-                if (init_schemas[schema][0].id === val) {
+                if (init_schemas[schema]._id === val) {
                     which_schema = schema;
                     loadData(init_schemas, schema_data, which_schema);
                 } 
@@ -600,7 +465,7 @@
         } 
     };
 
-})();
+};
 </script>
 
 <div style="position: relative">
