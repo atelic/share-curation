@@ -478,11 +478,11 @@ function jedit(hits) {
 			// TODO: don't let empty string
             if (init_schemas[schema]._id === editor.options.schema.id) {
                 for (value in editor.getValue()) {
-					if (!value.contains("Contributor")) {
+					if (!value.contains("Contributor") && !value.contains("contributor")) {
 						if (editor.getValue()[value] !== '') {
 							init_schemas[schema]._source[value] = editor.getValue()[value];
 							init_schemas[schema][value] = editor.getValue()[value];
-							console.log(init_schemas[schema]);
+							//console.log(init_schemas[schema]);
 						}	
 					} else {
                         console.log("contributor");
