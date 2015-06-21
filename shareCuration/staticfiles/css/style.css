@@ -1,5 +1,6 @@
 body {
     padding-top: 15px; /* body padding for fixed top nav */
+    padding-bottom: 15px;
     position: relative; /* for bootstrap affix */
 }
 h1 {
