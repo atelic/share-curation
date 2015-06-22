@@ -11,7 +11,7 @@
 
 </head>
 <body style="width: 100%;height: 100%;">
-	<h1>Welcome to SHARE curation interface! <small> help improve our data</small>s</h1>
+	<h1>Welcome to SHARE curation interface! <small> help improve our data</small></h1>
 
     <div class='container'>
         <!--  <input id="submit" type="button" value="Load Data" action="/crowd/sharedata"/> -->
@@ -38,7 +38,7 @@ var base_schema;
 var share_schema;
 $(function(){
         $.ajax({
-            url: "/crowd/sharedata",
+            url: "/crowd/sharedata/",
             dataType:'json',
             success: function(response){ 
                 hits = response.hits.hits;
@@ -472,7 +472,8 @@ function jedit(hits) {
                     }
                 }
             }
-        } 
+        }
+		alert('Schema saved!');
     };
 
 };
