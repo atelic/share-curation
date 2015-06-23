@@ -7,6 +7,6 @@ A highly experimental curation iterface for SHARE
 Installing:
 
 * create and source a python virtualenv
-  * `virtualenv env && source env/bin/activate` 
+  * `virtualenv env -p /usr/bin/python2.7 && source env/bin/activate` 
 * Clone this repo, run `npm install` and `pip install -r requirements.txt`
 * Start the server with `python manage.py runserver`
